@@ -21,7 +21,7 @@ one sig FrontDesk {
 
 //Room Constraint
 fact DisjointKeySets {
-	//Room <: keys = Room lone -> Key
+	//(Room <: keys) : Room lone -> Key
 	all k: Key | lone keys.k
 }
 
@@ -98,6 +98,13 @@ fact Traces {
 	or checkout [t, tnew, g]
 }
 
+//necessary restriction
+fact NoIntervening {
+	all t: Time - TO/last| let tnew = TO/next [t], tnext = TO/next[tnew] |
+	all g: Guest, r: Room, k: Key |
+	checkin [t, tnew, g, r, k] => (entry [tnew, tnext, g, r, k] or no tnext)
+}
+/*
 //checking if unauthorized entry is possible
 assert NoBadEntry {
 	all t: Time, r: Room, g: Guest, k: Key | let tnew= TO/next[t] |
@@ -105,13 +112,8 @@ assert NoBadEntry {
 	entry [t, tnew, g, r, k] and some o => g in o
 }
 
-//necessary restriction
-fact NoIntervening {
-	all t: Time - TO/last| let tnew = TO/next [t], tnext = TO/next[tnew] |
-	all g: Guest, r: Room, k: Key |
-	checkin [t, tnew, g, r, k] => (entry [tnew, tnext, g, r, k] or no tnext)
-}
-//check NoBadEntry for 5 but 3 Room, 3 Guest, 9 Time
-check NoBadEntry for 5 but 2 Room, 2 Guest, 5 Time
+check NoBadEntry for 5 but 3 Room, 3 Guest, 9 Time
+//check NoBadEntry for 3 but 2 Room, 2 Guest, 5 Time
+//check NoBadEntry for 3 but 3 Room, 3 Guest, 7 Time
 
-
+*/
