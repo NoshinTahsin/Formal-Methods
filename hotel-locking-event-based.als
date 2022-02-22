@@ -1,7 +1,9 @@
+//An event-based variation
 module examples/hotelEvents
 open util/ordering[Time] as TO
 open util/ordering[Key] as KO
 
+//Signatures and Fields
 sig Key, Time {}
 
 sig Room {
@@ -18,21 +20,29 @@ one sig FrontDesk {
 	occupant: Room -> Guest -> Time
 }
 
+//Room Constraint
 fact DisjointKeySets {
 	//Room <: keys = Room lone -> Key
 	all k: Key | lone keys.k
 }
 
+//New Key Generation
 fun nextKey [k: Key, ks: set Key]: set Key {
 	KO/min [KO/nexts[k] & ks]
 }
 
+//Hotel Operations: Initial State
 pred init [t: Time] {
 	no Guest.keys.t
 	no FrontDesk.occupant.t
 	all r: Room | FrontDesk.lastKey.t [r] = r.currentKey.t
 }
 
+/*Instead of writing a predicate for each operation, 
+a signature is declared whose atoms represent a set of events. 
+The Checkin signature represents the set of all events in which a guest checks in. 
+The constraints that were in the predicate now appear instead as signature facts.
+Arguments to operation predicates now become fields of the event signatures.*/
 abstract sig Event {
 	pre, post: Time,
 	guest: Guest
@@ -43,6 +53,7 @@ abstract sig RoomKeyEvent extends Event {
 	key: Key
 }
 
+//guest entry
 sig Entry extends RoomKeyEvent {} {
 	key in guest.keys.pre
 	let ck = room.currentKey |
@@ -64,6 +75,7 @@ sig Entry extends RoomKeyEvent {} {
 	noFrontDeskChange [t, tnew]
 }*/
 
+//checkout
 sig Checkin extends RoomKeyEvent {} {
 	
 	keys.post = keys.pre + guest -> key
@@ -83,6 +95,7 @@ sig Checkin extends RoomKeyEvent {} {
 	//noGuestChangeExcept[guest, pre, post]
 }
 
+//checkout
 sig Checkout extends Event {} {
 	let occ = FrontDesk.occupant {
 		some occ.pre.guest
@@ -95,6 +108,7 @@ sig Checkout extends Event {} {
 	noGuestChangeExcept[none, pre, post]*/
 }
 
+//trace generation
 fact Traces {
 	init [TO/first]
 	all t: Time - TO/last| let tnew = TO/next[t] |
@@ -108,6 +122,7 @@ fact Traces {
 }
 
 //ekhane jhamela
+//checking if unauthorized entry is possible
 assert NoBadEntry {
 	all e: Entry | let o = FrontDesk.occupant.(e.pre) [e.room] |
 	some o => e.guest in o
@@ -115,6 +130,7 @@ assert NoBadEntry {
 
 check NoBadEntry for 5 but 2 Room, 2 Guest, 5 Time, 8 Event
 
+//necessary restriction
 fact NoIntervening {
 	all c: Checkin |
 	c.post = TO/last
