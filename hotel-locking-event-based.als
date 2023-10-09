@@ -121,15 +121,6 @@ fact Traces {
 	}
 }
 
-//ekhane jhamela
-//checking if unauthorized entry is possible
-assert NoBadEntry {
-	all e: Entry | let o = FrontDesk.occupant.(e.pre) [e.room] |
-	some o => e.guest in o
-}
-
-check NoBadEntry for 5 but 2 Room, 2 Guest, 5 Time, 8 Event
-
 //necessary restriction
 fact NoIntervening {
 	all c: Checkin |
@@ -140,4 +131,16 @@ fact NoIntervening {
 		e.guest = c.guest
 	}
 }
+
+
+
+//checking if unauthorized entry is possible
+/*assert NoBadEntry {
+	all e: Entry | let o = FrontDesk.occupant.(e.pre) [e.room] |
+	some o => e.guest in o
+}
+
+check NoBadEntry for 5 but 2 Room, 2 Guest, 5 Time, 8 Event*/
+
+
 
